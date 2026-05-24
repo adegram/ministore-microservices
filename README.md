@@ -9,8 +9,7 @@ It includes:
 - `order-service` — creates orders and calls the product + notification services
 - `notification-service` — stores order notification messages
 - Dockerfiles for every service
-- Kubernetes Deployments, Services, ConfigMap, readiness probes, liveness probes, and optional Ingress
-- GitHub Actions workflow for building and pushing Docker images
+- Kubernetes Deployments, Services, ConfigMap.
 
 ## Architecture
 
