@@ -40,6 +40,9 @@ jobs:
   docker-build-push:
     runs-on: ubuntu-latest
     needs: build-test
+    strategy:
+      matrix:
+        service: [api-gateway, notification-service, order-service, product-service]
 
     steps:
       - name: Checkout code
