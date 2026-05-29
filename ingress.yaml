@@ -1,0 +1,18 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ministore-ingress
+spec:
+  ingressClassName: nginx # ingress controller name 
+
+  rules:
+    - host: ministore.com
+      http:
+        paths:
+          - path: / # all paths will be forwarded to the root url of api-gateway
+            pathType: Prefix
+            backend:
+              service:
+                name: api-gateway-service
+                port:
+                  number: 80
