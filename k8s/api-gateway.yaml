@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: api-frontend
-        image: adehorizon/api-gateway:latest
+        image: adehorizon/api-gateway:3.1
         ports:
         - containerPort: 8080
         envFrom:

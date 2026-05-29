@@ -136,7 +136,7 @@ spec:
     spec:
       containers:
       - name: api-gateway
-        image: adehorizon/api-gateway:latest
+        image: adehorizon/api-gateway:3.1
         ports:
         - containerPort: 8080
 
@@ -212,7 +212,7 @@ The Deployment loads all values safely using `envFrom`:
 ```yaml
 containers:
 - name: api-gateway
-  image: adehorizon/api-gateway:latest
+  image: adehorizon/api-gateway:3.1
   ports:
   - containerPort: 8080
   envFrom:

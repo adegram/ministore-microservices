@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: notification-service
-        image: adehorizon/notification-service:latest
+        image: adehorizon/notification-service:3.1
         ports:
         - containerPort: 3003   
 
