@@ -1,53 +1,64 @@
+```markdown
 # Ministore Microservices Kubernetes Project
 
 This project is a microservices-based application built with Node.js, Docker, Kubernetes, and AWS EKS. The project demonstrates how multiple backend services can be containerized, pushed to a Docker registry, and deployed into a Kubernetes cluster where they communicate with each other using Kubernetes Services.
 
+---
+
 ## Project Overview
 
 The application is made up of multiple services:
-
-- API Gateway
-- Product Service
-- Order Service
-- Notification Service
+* **API Gateway**
+* **Product Service**
+* **Order Service**
+* **Notification Service**
 
 Each service is developed as a separate microservice, containerized with Docker, and deployed independently using Kubernetes Deployments and Services.
 
 The API Gateway acts as the main entry point into the application. It communicates internally with the other services using Kubernetes service discovery.
 
+---
+
 ## Architecture
 
-User / Client
-   |
-API Gateway
-   |
---------------------------------
-| Product Service              |
-| Order Service                |
-| Notification Service         |
---------------------------------
-````
+```text
+    User / Client
+         |
+    API Gateway
+         |
+---------------------------------
+|  Product Service (3001)       |
+|  Order Service (3002)         |
+|  Notification Service (3003)  |
+---------------------------------
+
+```
 
 Inside Kubernetes, the services communicate using internal service names such as:
-```txt
+
+```text
 http://product-service:3001
 http://order-service:3002
 http://notification-service:3003
 
 ```
 
+---
 
 ## Services
 
-| Service              | Purpose                               | Port |
-| -------------------- | ------------------------------------- | ---- |
-| API Gateway          | Main entry point for requests         | 8080 |
-| Product Service      | Handles product-related requests      | 3001 |
-| Order Service        | Handles order-related requests        | 3002 |
+| Service | Purpose | Port |
+| --- | --- | --- |
+| API Gateway | Main entry point for requests | 8080 |
+| Product Service | Handles product-related requests | 3001 |
+| Order Service | Handles order-related requests | 3002 |
 | Notification Service | Handles notification-related requests | 3003 |
+
+---
 
 ## Project Folder Structure
 
+```text
 project-root/
 │
 ├── services/
@@ -85,30 +96,20 @@ project-root/
 └── .github/
     └── workflows/
         └── docker-ci-pipeline.yaml
+
 ```
+
+---
 
 ## What Was Done
 
 ### 1. Created Multiple Microservices
 
-The application was split into separate services:
+The application was split into separate services: `api-gateway`, `product-service`, `order-service`, and `notification-service`. Each service has its own codebase and Dockerfile, allowing them to be built, deployed, scaled, and updated independently.
 
-```txt
-api-gateway
-product-service
-order-service
-notification-service
-```
+### 2. Created Kubernetes Deployments
 
-Each service has its own codebase and Dockerfile.
-
-This allows each service to be built, deployed, scaled, and updated independently.
-
-## 2. Created Kubernetes Deployments
-
-Each microservice has its own Kubernetes Deployment.
-
-Example API Gateway Deployment:
+Each microservice has its own Kubernetes Deployment responsible for creating pods, maintaining replica sets, managing rollouts, and keeping the application healthy.
 
 ```yaml
 apiVersion: apps/v1
@@ -132,25 +133,12 @@ spec:
         image: adehorizon/api-gateway:latest
         ports:
         - containerPort: 8080
+
 ```
 
-The Deployment is responsible for:
+### 3. Created Kubernetes Services
 
-* Creating pods
-* Keeping the desired number of replicas running
-* Restarting failed pods
-* Rolling out new versions
-* Managing updates to the application
-
-## 3. Created Kubernetes Services
-
-Each microservice has a Kubernetes Service.
-
-Services provide stable network names for pods.
-
-Pods are temporary and can be recreated with new IP addresses. A Service gives them a permanent internal DNS name.
-
-Example Product Service:
+Services provide stable network names (DNS) for pods since individual pod IPs are ephemeral and temporary.
 
 ```yaml
 apiVersion: v1
@@ -164,70 +152,18 @@ spec:
   ports:
   - port: 3001
     targetPort: 3001
+
 ```
 
-The API Gateway can call the Product Service using:
+### 4. Used ClusterIP for Internal Communication
 
+Internal microservices use `type: ClusterIP`. This ensures they remain private and can only communicate inside the Kubernetes cluster without exposure to the public internet.
 
-http://product-service:3001
 ```
 
-## 4. Used ClusterIP for Internal Communication
+### 5. Added Environment Variables for Service Communication
 
-Internal microservices use:
-
-```yaml
-type: ClusterIP
-```
-
-This allows services to communicate inside the Kubernetes cluster without exposing them to the internet.
-
-Example internal services:
-
-```txt
-product-service
-order-service
-notification-service
-```
-
-These services should usually remain private inside the cluster.
-
-## 5. Used NodePort for External Testing
-
-For local or simple external testing, the API Gateway can be exposed using a NodePort Service.
-
-Example:
-
-```yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: api-gateway-service
-spec:
-  type: NodePort
-  selector:
-    app: api-gateway
-  ports:
-  - port: 80
-    targetPort: 8080
-    nodePort: 32080
-```
-
-Meaning:
-
-```txt
-port: 80          = Kubernetes Service port
-targetPort: 8080  = API Gateway container port
-nodePort: 32080   = External node port
-```
-
-## 6. Added Environment Variables for Service Communication
-
-The API Gateway needs to know where the other services are.
-
-Instead of hardcoding service URLs directly in the application code, environment variables were added.
-
-Example:
+Instead of hardcoding endpoint URLs directly in the application code, environment variables are mapped to allow dynamic routing:
 
 ```yaml
 env:
@@ -237,19 +173,19 @@ env:
   value: "http://order-service:3002"
 - name: NOTIFICATION_SERVICE_URL
   value: "http://notification-service:3003"
+
 ```
 
-This allows the API Gateway code to call services like this:
+This enables the API Gateway to interact with backing services natively:
 
-```js
+```javascript
 fetch(`${process.env.PRODUCT_SERVICE_URL}/products`)
+
 ```
 
-## 7. Created a ConfigMap
+### 6. Created a ConfigMap
 
-A ConfigMap was created to store non-sensitive configuration values.
-
-Correct ConfigMap example:
+A ConfigMap manages non-sensitive configuration parameters cleanly decoupled from the deployment code.
 
 ```yaml
 apiVersion: v1
@@ -260,17 +196,10 @@ data:
   PRODUCT_SERVICE_URL: "http://product-service:3001"
   ORDER_SERVICE_URL: "http://order-service:3002"
   NOTIFICATION_SERVICE_URL: "http://notification-service:3003"
+
 ```
 
-The Deployment can load all values from the ConfigMap using:
-
-```yaml
-envFrom:
-- configMapRef:
-    name: api-gateway-config
-```
-
-Example inside the container spec:
+The Deployment loads all values safely using `envFrom`:
 
 ```yaml
 containers:
@@ -281,13 +210,12 @@ containers:
   envFrom:
   - configMapRef:
       name: api-gateway-config
+
 ```
 
-## 8. Added Resource Requests and Limits
+### 8. Added Resource Requests and Limits
 
-Resource requests and limits were added to control CPU and memory usage.
-
-Example:
+Resource parameters control and protect CPU and memory allocation per pod instance.
 
 ```yaml
 resources:
@@ -297,27 +225,17 @@ resources:
   limits:
     memory: "256Mi"
     cpu: "500m"
+
 ```
 
-Meaning:
+* **Requests:** Minimum guaranteed resources Kubernetes reserves for the container.
+* **Limits:** Maximum threshold ceiling resources the container can consume.
 
-```txt
-requests = minimum resources Kubernetes reserves for the container
-limits   = maximum resources the container can use
-```
+### 9. Configured Health Checks
 
-## 9. Discussed Health Checks
+Two crucial probes manage self-healing lifecycle behavior:
 
-Two important Kubernetes health checks were discussed:
-
-### readinessProbe
-
-Checks if the application is ready to receive traffic.
-
-If readiness fails, Kubernetes will not send traffic to that pod.
-
-Example:
-
+* **readinessProbe:** Checks if the app is ready to serve active traffic.
 ```yaml
 readinessProbe:
   httpGet:
@@ -325,16 +243,11 @@ readinessProbe:
     port: 8080
   initialDelaySeconds: 5
   periodSeconds: 10
+
 ```
 
-### livenessProbe
 
-Checks if the application is still healthy.
-
-If liveness fails, Kubernetes restarts the container.
-
-Example:
-
+* **livenessProbe:** Checks if the app is still healthy. Failed probes trigger automatic container restarts.
 ```yaml
 livenessProbe:
   httpGet:
@@ -342,15 +255,14 @@ livenessProbe:
     port: 8080
   initialDelaySeconds: 15
   periodSeconds: 20
+
 ```
 
-## 10. Discussed HPA
 
-HPA means Horizontal Pod Autoscaler.
 
-It automatically increases or decreases the number of pods based on traffic or resource usage.
+### 10. Implemented Horizontal Pod Autoscaler (HPA)
 
-Example:
+The HPA scales your pods up or down dynamically depending on traffic and compute requirements.
 
 ```yaml
 apiVersion: autoscaling/v2
@@ -371,219 +283,112 @@ spec:
       target:
         type: Utilization
         averageUtilization: 70
+
 ```
 
-This means Kubernetes can scale the API Gateway between 2 and 10 pods depending on CPU usage.
+### 11. Core Deployment Pipeline
 
-## 11. Applied Kubernetes YAML Files
-
-All Kubernetes YAML files inside the `k8s` folder can be applied at once using:
+Apply all manifests synchronously inside the cluster:
 
 ```bash
 kubectl apply -f ./k8s
+
 ```
 
-Or from inside the `k8s` folder:
-
-```bash
-kubectl apply -f .
-```
-
-To check deployments:
+Verify cluster statuses:
 
 ```bash
 kubectl get deployments
-```
-
-To check pods:
-
-```bash
 kubectl get pods
-```
-
-To check services:
-
-```bash
 kubectl get services
-```
-
-To check services in a namespace:
-
-```bash
 kubectl get svc -n <namespace-name>
-```
-
-To check all namespaces:
-
-```bash
 kubectl get svc -A
+
 ```
 
-## 12. Deleted Kubernetes Deployments
-
-Multiple deployments can be deleted at once using:
+### 12. Deleting Resources
 
 ```bash
+# Delete specific deployments
 kubectl delete deployment api-gateway-deployment product-deployment order-deployment notification-deployment
-```
 
-All resources in a folder can be deleted using:
-
-```bash
+# Clean up all resources in the k8s folder
 kubectl delete -f ./k8s
+
 ```
 
-## 13. Created GitHub Actions CI/CD Pipeline
+### 13. GitHub Actions CI/CD Pipeline
 
-A GitHub Actions workflow was created to:
+The included workflow automatically checks out codebase, sets up Node runtime environments, processes application packages, and uses a build matrix strategy to build and push individual microservice Docker images to Docker Hub safely.
 
-* Checkout the code
-* Set up Node.js
-* Install dependencies
-* Build each service
-* Build Docker images
-* Push images to Docker Hub
+### 14. Architecture Platform Support
 
-The workflow uses a matrix strategy so each microservice can be built and pushed separately.
-
-## 14. Added Platform Support
-
-The workflow builds images for:
+The default build targets:
 
 ```yaml
 platforms: linux/amd64
+
 ```
 
-This ensures the image can run on typical AWS EKS worker nodes.
-
-For both AMD64 and ARM64 support, this can be changed to:
+For explicit multi-architecture support (e.g., both Intel/AMD and ARM nodes), use:
 
 ```yaml
 platforms: linux/amd64,linux/arm64
+
 ```
 
-## Useful Commands
+---
 
-### View local Docker images
+## Useful Commands Cheat Sheet
 
-```bash
-docker images
-```
+| Command | Action |
+| --- | --- |
+| `docker images` | View local Docker image cache |
+| `kubectl apply -f ./k8s` | Apply all manifests in the folder |
+| `kubectl rollout restart deployment <name>` | Force restart running deployment instances |
+| `kubectl get pods` | View status of active pods |
+| `kubectl describe pod <pod-name>` | Inspect specific logs and lifecycle debug parameters |
+| `kubectl get svc` | List details of running Kubernetes services |
+| `kubectl delete -f ./k8s` | Wipe all managed folder resources from the cluster |
 
-### Apply Kubernetes files
-
-```bash
-kubectl apply -f ./k8s
-```
-
-### Restart deployments
-
-```bash
-kubectl rollout restart deployment api-gateway-deployment
-kubectl rollout restart deployment product-deployment
-kubectl rollout restart deployment order-deployment
-kubectl rollout restart deployment notification-deployment
-```
-
-### Check pods
-
-```bash
-kubectl get pods
-```
-
-### Describe a pod
-
-```bash
-kubectl describe pod <pod-name>
-```
-
-### Check services
-
-```bash
-kubectl get svc
-```
-
-### Check deployments
-
-```bash
-kubectl get deployments
-```
-
-### Delete all resources from YAML files
-
-```bash
-kubectl delete -f ./k8s
-```
+---
 
 ## Key Kubernetes Concepts Used
 
-### Deployment
+* **Deployment:** Manages declarative configuration states for Pods and ReplicaSets.
+* **Pod:** The smallest execution unit running your application containers.
+* **Service:** Exposes an application running on a set of Pods as a network service.
+* **ClusterIP:** Default service type; limits visibility strictly within the cluster.
+* **NodePort:** Exposes the Service on each Node's IP at a static port.
+* **ConfigMap:** Inject external decoupled environment configurations to pods.
+* **Resource Controls:** Requests (allocated baseline) and Limits (hard cap parameters).
+* **Probes:** Custom health metrics validation via Liveness and Readiness tags.
+* **HPA:** Auto-scaler tuning replica counts based on metrics observation.
 
-A Deployment manages pods and keeps the desired number of replicas running.
+---
 
-### Pod
+## Project Status & Next Steps
 
-A Pod is the smallest deployable unit in Kubernetes. It runs one or more containers.
+### Current Status
 
-### Service
+* [x] Multiple Node.js microservices setup
+* [x] Custom Dockerfiles per microservice
+* [x] Kubernetes Deployments & ClusterIP networking
+* [x] Environment variable configurations managed via ConfigMaps
+* [x] Automated Multi-Matrix GitHub Actions CI pipeline
 
-A Service gives pods a stable network name and load balances traffic to them.
+### Planned Improvements
 
-### ClusterIP
+* [ ] Integrate Prometheus and Grafana cluster monitoring metrics
+* [ ] Configure centralized cluster-wide logging aggregation
+* [ ] Implement full automated continuous deployment (CD) workflows straight into EKS via GitHub Actions
 
-Used for internal communication between services inside the cluster.
-
-### NodePort
-
-Used to expose a service through a port on the Kubernetes node.
-
-### ConfigMap
-
-Used to store non-sensitive configuration values such as internal service URLs.
-
-### Resource Requests
-
-Minimum CPU and memory Kubernetes reserves for a container.
-
-### Resource Limits
-
-Maximum CPU and memory a container is allowed to use.
-
-### readinessProbe
-
-Checks if a pod is ready to receive traffic.
-
-### livenessProbe
-
-Checks if a pod should be restarted.
-
-### HPA
-
-Automatically scales pods based on resource usage.
-
-## Current Status
-
-The project currently includes:
-```txt
-* Multiple Node.js microservices
-* Dockerfiles for each service
-* Kubernetes Deployments for each service
-* Kubernetes Services for internal communication
-* API Gateway service communication using environment variables
-* ConfigMap for service URLs
-* GitHub Actions CI/CD workflow
-* Linux AMD64 image builds for AWS EKS compatibility
-```
-
-## Next Improvements
-* Add monitoring with Prometheus and Grafana
-* Add centralized logging
-* Add automated deployment to EKS from GitHub Actions
+---
 
 ## Important Notes
 
-For AWS EKS, images must be available in a container registry such as Docker Hub or Amazon ECR.
+> ⚠️ **AWS EKS Requirements:** Images must be hosted on an accessible registry like Docker Hub or Amazon ECR. Ensure your target image architecture tags exactly match your running EKS Worker node types (e.g., `linux/amd64` or `linux/arm64`).
 
-Also, image architecture matters. If EKS nodes are `amd64`, the Docker images must support `linux/amd64`.
+```
 
 ```
