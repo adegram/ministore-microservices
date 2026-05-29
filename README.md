@@ -330,21 +330,6 @@ kubectl delete -f ./k8s
 The included workflow automatically checks out codebase, sets up Node runtime environments, processes application packages, 
 and uses a build matrix strategy to build and push individual microservice Docker images to Docker Hub safely.
 
-### 12. Architecture Platform Support
-
-The default build targets:
-
-```yaml
-platforms: linux/amd64
-
-```
-
-For explicit multi-architecture support (e.g., both Intel/AMD and ARM nodes), use:
-
-```yaml
-platforms: linux/amd64,linux/arm64
-
-```
 
 ---
 
@@ -393,11 +378,3 @@ platforms: linux/amd64,linux/arm64
 * [ ] Implement full automated continuous deployment (CD) workflows straight into EKS via GitHub Actions
 
 ---
-
-## Important Notes
-
-> ⚠️ **AWS EKS Requirements:** Images must be hosted on an accessible registry like Docker Hub or Amazon ECR. Ensure your target image architecture tags exactly match your running EKS Worker node types (e.g., `linux/amd64` or `linux/arm64`).
-
-```
-
-```
