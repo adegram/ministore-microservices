@@ -2,7 +2,6 @@ FROM node:22-alpine
 WORKDIR /app
 ENV NODE_ENV=production
 
-# Copy only dependency files first for better Docker layer caching
 COPY package*.json ./
 
 # Install only production dependencies using the lock file

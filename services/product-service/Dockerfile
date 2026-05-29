@@ -14,5 +14,5 @@ COPY . .
 USER node
 
 EXPOSE 3001
-# Start the Express application
+# Start the application
 CMD ["npm", "start"]
