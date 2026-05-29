@@ -4,6 +4,10 @@ on:
   push:
     branches:
       - main
+    paths:
+      - "services/**"
+      # - "k8s/**"
+      - ".github/workflows/**"
         
   workflow_dispatch:
 
@@ -59,7 +63,7 @@ jobs:
         with:
           context: ./services/${{ matrix.service }} # Specify the build context (e.g., the directory containing the Dockerfile)
           push: true
-          platforms: linux/amd64 # Build for multiple platforms
+          platforms: linux/amd64
           tags: |
             ${{ secrets.DOCKER_USERNAME }}/${{ matrix.service }}:3.1
             ${{ secrets.DOCKER_USERNAME }}/${{ matrix.service }}:${{ github.sha }}
