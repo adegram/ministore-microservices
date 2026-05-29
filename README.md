@@ -1,7 +1,9 @@
 ```markdown
 # Ministore Microservices Kubernetes Project
 
-This project is a microservices-based application built with Node.js, Docker, Kubernetes, and AWS EKS. The project demonstrates how multiple backend services can be containerized, pushed to a Docker registry, and deployed into a Kubernetes cluster where they communicate with each other using Kubernetes Services.
+This project is a microservices-based application built with Node.js, Docker, Kubernetes, and AWS EKS. 
+The project demonstrates how multiple backend services can be containerized, pushed to a Docker registry, 
+and deployed into a Kubernetes cluster where they communicate with each other using Kubernetes Services.
 
 ---
 
@@ -13,9 +15,11 @@ The application is made up of multiple services:
 * **Order Service**
 * **Notification Service**
 
-Each service is developed as a separate microservice, containerized with Docker, and deployed independently using Kubernetes Deployments and Services.
+Each service is developed as a separate microservice, containerized with Docker, and deployed independently 
+using Kubernetes Deployments and Services.
 
-The API Gateway acts as the main entry point into the application. It communicates internally with the other services using Kubernetes service discovery.
+The API Gateway acts as the main entry point into the application. 
+It communicates internally with the other services using Kubernetes service discovery.
 
 ---
 
@@ -105,11 +109,13 @@ project-root/
 
 ### 1. Created Multiple Microservices
 
-The application was split into separate services: `api-gateway`, `product-service`, `order-service`, and `notification-service`. Each service has its own codebase and Dockerfile, allowing them to be built, deployed, scaled, and updated independently.
+The application was split into separate services: `api-gateway`, `product-service`, `order-service`, and `notification-service`. 
+Each service has its own codebase and Dockerfile, allowing them to be built, deployed, scaled, and updated independently.
 
 ### 2. Created Kubernetes Deployments
 
-Each microservice has its own Kubernetes Deployment responsible for creating pods, maintaining replica sets, managing rollouts, and keeping the application healthy.
+Each microservice has its own Kubernetes Deployment responsible for creating pods, maintaining replica sets, managing rollouts,
+ and keeping the application healthy.
 
 ```yaml
 apiVersion: apps/v1
@@ -157,13 +163,15 @@ spec:
 
 ### 4. Used ClusterIP for Internal Communication
 
-Internal microservices use `type: ClusterIP`. This ensures they remain private and can only communicate inside the Kubernetes cluster without exposure to the public internet.
+Internal microservices use `type: ClusterIP`. This ensures they remain private and can only communicate inside 
+the Kubernetes cluster without exposure to the public internet.
 
 ```
 
 ### 5. Added Environment Variables for Service Communication
 
-Instead of hardcoding endpoint URLs directly in the application code, environment variables are mapped to allow dynamic routing:
+Instead of hardcoding endpoint URLs directly in the application code, environment variables are mapped 
+to allow dynamic routing:
 
 ```yaml
 env:
@@ -213,7 +221,7 @@ containers:
 
 ```
 
-### 8. Added Resource Requests and Limits
+### 7. Added Resource Requests and Limits
 
 Resource parameters control and protect CPU and memory allocation per pod instance.
 
@@ -260,7 +268,7 @@ livenessProbe:
 
 
 
-### 10. Implemented Horizontal Pod Autoscaler (HPA)
+### 8. Implemented Horizontal Pod Autoscaler (HPA)
 
 The HPA scales your pods up or down dynamically depending on traffic and compute requirements.
 
@@ -286,7 +294,7 @@ spec:
 
 ```
 
-### 11. Core Deployment Pipeline
+### 9. Core Deployment Pipeline
 
 Apply all manifests synchronously inside the cluster:
 
@@ -306,7 +314,7 @@ kubectl get svc -A
 
 ```
 
-### 12. Deleting Resources
+### 10. Deleting Resources
 
 ```bash
 # Delete specific deployments
@@ -317,11 +325,12 @@ kubectl delete -f ./k8s
 
 ```
 
-### 13. GitHub Actions CI/CD Pipeline
+### 11. GitHub Actions CI/CD Pipeline
 
-The included workflow automatically checks out codebase, sets up Node runtime environments, processes application packages, and uses a build matrix strategy to build and push individual microservice Docker images to Docker Hub safely.
+The included workflow automatically checks out codebase, sets up Node runtime environments, processes application packages, 
+and uses a build matrix strategy to build and push individual microservice Docker images to Docker Hub safely.
 
-### 14. Architecture Platform Support
+### 12. Architecture Platform Support
 
 The default build targets:
 
