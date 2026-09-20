@@ -1,5 +1,8 @@
 pipeline {
     agent any
+    tools {
+        nodejs 'NodeJS 23.0.0'
+    }
 
     stages {
         stage('Clone Github Repository') {
@@ -11,6 +14,7 @@ pipeline {
         stage('Build') {
             steps {
                 dir('services/api-gateway') {
+                    sh 'npm --version'
                     sh 'npm install'
                 }
             }
