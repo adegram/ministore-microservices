@@ -21,10 +21,3 @@
     "node": ">=20"
   }
 }
-
-{
-  "scripts": {
-    "start": "node app.js",
-    "test": "jest"
-  }
-}
