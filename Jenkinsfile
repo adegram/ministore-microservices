@@ -15,7 +15,13 @@ pipeline {
                 }
             }
         }
-    
+        stage  ('Test') {
+            steps {
+                dir('services/api-gateway') {
+                    sh 'npm test'
+                }
+            }
+        }
     }
 
 }
